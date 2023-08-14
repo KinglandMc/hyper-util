@@ -9,7 +9,7 @@
 //! # Connectors
 //!
 //! A "connector" is a [`Service`][] that takes a [`Uri`][] destination, and
-//! its `Response` is some type implementing [`Read`][], [`Write`][],
+//! its `Response` is some type implementing [`AsyncRead`][], [`AsyncWrite`][],
 //! and [`Connection`][].
 //!
 //! ## Custom Connectors
@@ -59,8 +59,8 @@
 //! [`HttpConnector`]: HttpConnector
 //! [`Service`]: tower::Service
 //! [`Uri`]: ::http::Uri
-//! [`Read`]: hyper::rt::Read
-//! [`Write`]: hyper::rt::Write
+//! [`AsyncRead`]: tokio::io::AsyncRead
+//! [`AsyncWrite`]: tokio::io::AsyncWrite
 //! [`Connection`]: Connection
 use std::fmt;
 
@@ -248,7 +248,7 @@ pub(super) mod sealed {
     use std::marker::Unpin;
 
     use ::http::Uri;
-    use hyper::rt::{Read, Write};
+    use tokio::io::{AsyncRead, AsyncWrite};
 
     use super::Connection;
 
@@ -272,7 +272,7 @@ pub(super) mod sealed {
     }
 
     pub trait ConnectSvc {
-        type Connection: Read + Write + Connection + Unpin + Send + 'static;
+        type Connection: AsyncRead + AsyncWrite + Connection + Unpin + Send + 'static;
         type Error: Into<Box<dyn StdError + Send + Sync>>;
         type Future: Future<Output = Result<Self::Connection, Self::Error>> + Unpin + Send + 'static;
 
@@ -284,7 +284,7 @@ pub(super) mod sealed {
         S: tower_service::Service<Uri, Response = T> + Send + 'static,
         S::Error: Into<Box<dyn StdError + Send + Sync>>,
         S::Future: Unpin + Send,
-        T: Read + Write + Connection + Unpin + Send + 'static,
+        T: AsyncRead + AsyncWrite + Connection + Unpin + Send + 'static,
     {
         type _Svc = S;
 
@@ -298,7 +298,7 @@ pub(super) mod sealed {
         S: tower_service::Service<Uri, Response = T> + Send + 'static,
         S::Error: Into<Box<dyn StdError + Send + Sync>>,
         S::Future: Unpin + Send,
-        T: Read + Write + Connection + Unpin + Send + 'static,
+        T: AsyncRead + AsyncWrite + Connection + Unpin + Send + 'static,
     {
         type Connection = T;
         type Error = S::Error;
@@ -314,7 +314,7 @@ pub(super) mod sealed {
         S: tower_service::Service<Uri, Response = T> + Send,
         S::Error: Into<Box<dyn StdError + Send + Sync>>,
         S::Future: Unpin + Send,
-        T: Read + Write + Connection + Unpin + Send + 'static,
+        T: AsyncRead + AsyncWrite + Connection + Unpin + Send + 'static,
     {
     }
 
